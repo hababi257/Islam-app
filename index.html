@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Islam Authentique — Manhaj As-Salaf</title>
+  <meta name="description" content="Application islamique basée sur le Coran, la Sunnah authentique et la compréhension des Salaf As-Salih." />
+  <meta name="theme-color" content="#050e08" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050e08;
+      --bg2: #0a1a0f;
+      --bg3: #0d2218;
+      --border: #1a3a20;
+      --green: #22c55e;
+      --green-soft: #86efac;
+      --gold: #c9a84c;
+      --gold-soft: #e8c97a;
+      --text: #f1f5f0;
+      --text-muted: #9ca3af;
+      --text-dim: #4b5563;
+      --red: #ef4444;
+      --yellow: #eab308;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #app {
+      max-width: 430px;
+      margin: 0 auto;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    .header {
+      padding: 18px 20px 14px;
+      text-align: center;
+      background: linear-gradient(180deg, #050e08 60%, transparent);
+      flex-shrink: 0;
+      border-bottom: 1px solid #0d2218;
+    }
+    .header-bismillah {
+      font-family: 'Scheherazade New', serif;
+      color: var(--gold);
+      font-size: 18px;
+      margin-bottom: 4px;
+      direction: rtl;
+    }
+    .header-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.3px;
+    }
+    .header-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    /* SCROLL AREA */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px 20px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .content::-webkit-scrollbar { display: none; }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      display: flex;
+      background: #07130a;
+      border-top: 1px solid var(--border);
+      padding: 8px 0 env(safe-area-inset-bottom, 12px);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 6px 4px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-icon { font-size: 22px; transition: transform 0.2s; }
+    .nav-btn.active .nav-icon { transform: scale(1.15); }
+    .nav-label { font-size: 10px; font-weight: 500; color: var(--text-dim); transition: color 0.2s; }
+    .nav-btn.active .nav-label { color: var(--gold); font-weight: 700; }
+
+    /* SCREEN (hidden by default) */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* SECTION LABEL */
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green-soft);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .card:active { border-color: #2a5a30; }
+
+    /* PRAYER WIDGET */
+    .prayer-widget {
+      background: linear-gradient(135deg, #0a1a0f 0%, #0d2a16 100%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .prayer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .prayer-next-label { font-size: 11px; color: var(--green-soft); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .prayer-next-name { font-size: 22px; font-weight: 700; color: var(--text); }
+    .prayer-clock { font-size: 26px; font-weight: 700; color: var(--gold); font-family: 'Playfair Display', serif; }
+    .prayer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .prayer-item {
+      background: #ffffff05;
+      border: 1px solid #ffffff08;
+      border-radius: 10px;
+      padding: 8px 4px;
+      text-align: center;
+    }
+    .prayer-item.current { background: #c9a84c12; border-color: #c9a84c40; }
+    .prayer-item-name { font-size: 10px; color: var(--text-muted); margin-bottom: 3px; }
+    .prayer-item.current .prayer-item-name { color: var(--gold); }
+    .prayer-item-time { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+    .prayer-item.current .prayer-item-time { color: var(--text); }
+
+    /* BADGE */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      font-family: monospace;
+    }
+    .badge-sahih { background: #052e16; color: #22c55e; border: 1px solid #22c55e30; }
+    .badge-hasan { background: #1c1400; color: #eab308; border: 1px solid #eab30830; }
+    .badge-daif { background: #1c0000; color: #ef4444; border: 1px solid #ef444430; }
+    .badge-mawdou { background: #1a0033; color: #a855f7; border: 1px solid #a855f730; }
+
+    /* ARABIC TEXT */
+    .arabic {
+      font-family: 'Scheherazade New', serif;
+      direction: rtl;
+      text-align: right;
+      line-height: 2;
+      color: var(--text);
+    }
+    .arabic-lg { font-size: 26px; }
+    .arabic-xl { font-size: 30px; }
+
+    /* FILTERS */
+    .filters { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-btn {
+      background: var(--bg2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 7px 16px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .filter-btn.active {
+      background: var(--gold);
+      color: #000;
+      border-color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* TOGGLE */
+    .toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+    .toggle-btn {
+      flex: 1;
+      background: var(--bg2);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle-btn.active {
+      background: #c9a84c18;
+      color: var(--gold);
+      border-color: #c9a84c50;
+      font-weight: 700;
+    }
+
+    /* COUNTER BTN */
+    .counter-btn {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 28px;
+      font-weight: 800;
+      font-size: 18px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.1s, background 0.2s;
+    }
+    .counter-btn:active { transform: scale(0.95); }
+    .counter-btn.done { background: #166534; color: #86efac; }
+    .reset-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 11px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* SOURATE ITEM */
+    .sourate-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sourate-item:active { background: var(--bg3); }
+    .sourate-num {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: #c9a84c15;
+      border: 1px solid #c9a84c30;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    /* OULEMA ITEM */
+    .oulema-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+    }
+
+    /* LIVRE ITEM */
+    .livre-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* DIVIDER */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    /* ALBANI CHECK */
+    .albani-check {
+      margin-top: 10px;
+      background: #052e16;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--green-soft);
+    }
+
+    /* ANIMATIONS */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .screen.active { animation: fadeIn 0.25s ease; }
+
+    /* GOLD CHIP */
+    .chip {
+      background: #c9a84c15;
+      border: 1px solid #c9a84c30;
+      border-radius: 8px;
+      padding: 4px 10px;
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* GREEN CHIP */
+    .chip-green {
+      background: #1a3a20;
+      border-radius: 8px;
+      padding: 4px 10px;
+      color: var(--green-soft);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* PWA install banner */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--gold);
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 99px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      z-index: 999;
+      box-shadow: 0 4px 24px #c9a84c40;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-bismillah">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    <div class="header-title">Islam Authentique</div>
+    <div class="header-sub">Manhaj As-Salaf As-Salih</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ACCUEIL -->
+    <div class="screen active" id="screen-home">
+      <div class="prayer-widget">
+        <div class="prayer-top">
+          <div>
+            <div class="prayer-next-label">Prochaine prière</div>
+            <div class="prayer-next-name">Asr — 16:34</div>
+          </div>
+          <div class="prayer-clock" id="live-clock">--:--</div>
+        </div>
+        <div class="prayer-grid">
+          <div class="prayer-item"><div class="prayer-item-name">Fajr</div><div class="prayer-item-time">05:23</div></div>
+          <div class="prayer-item"><div class="prayer-item-name">Dhuhr</div><div class="prayer-item-time">13:02</div></div>
+          <div class="prayer-item current"><div class="prayer-item-name">Asr</div><div class="prayer-item-time">16:34</div></div>
+          <div class="prayer-item"><div class="prayer-item-name">Maghrib</div><div class="prayer-item-time">19:47</div></div>
+          <div class="prayer-item"><div class="prayer-item-name">Isha</div><div class="prayer-item-time">21:15</div></div>
+        </div>
+      </div>
+
+      <div class="section-label">Verset du jour</div>
+      <div class="card">
+        <div class="arabic arabic-xl" style="margin-bottom:14px">
+          قُلْ هُوَ اللَّهُ أَحَدٌ ۝ اللَّهُ الصَّمَدُ ۝ لَمْ يَلِدْ وَلَمْ يُولَدْ ۝ وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ
+        </div>
+        <div style="color:var(--text-muted);font-size:14px;line-height:1.7;margin-bottom:10px">
+          Dis : « Il est Allah, Unique. Allah, Le Seul à être imploré. Il n'a jamais engendré, n'a pas été engendré. Et nul n'est égal à Lui. »
+        </div>
+        <div style="color:var(--gold);font-size:12px">Sourate Al-Ikhlas (112) — Mecquoise</div>
+      </div>
+
+      <div class="section-label">Hadith du jour</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="color:var(--gold);font-size:12px;font-weight:600">Niyyah / Intention</div>
+          <span class="badge badge-sahih">✓ Sahih</span>
+        </div>
+        <div class="arabic arabic-lg" style="margin-bottom:12px">إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ</div>
+        <div style="color:var(--text-muted);font-size:14px;font-style:italic;margin-bottom:12px">« Les actes ne valent que par les intentions. »</div>
+        <hr class="divider" />
+        <div style="display:flex;justify-content:space-between;font-size:12px">
+          <span style="color:var(--green-soft)">Umar Ibn Al-Khattab (رضي الله عنه)</span>
+          <span style="color:var(--text-dim)">Bukhari n°1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CORAN -->
+    <div class="screen" id="screen-quran">
+      <div class="section-label">Sourates</div>
+      <div id="sourates-list"></div>
+    </div>
+
+    <!-- HADITH -->
+    <div class="screen" id="screen-hadith">
+      <div class="filters" id="hadith-filters">
+        <button class="filter-btn active" data-filter="Tous">Tous</button>
+        <button class="filter-btn" data-filter="Sahih">✓ Sahih</button>
+        <button class="filter-btn" data-filter="Hasan">~ Hasan</button>
+      </div>
+      <div id="hadiths-list"></div>
+    </div>
+
+    <!-- ADHKAR -->
+    <div class="screen" id="screen-adhkar">
+      <div class="toggle">
+        <button class="toggle-btn active" id="btn-matin" onclick="switchAdhkar('matin')">🌅 Adhkar du matin</button>
+        <button class="toggle-btn" id="btn-soir" onclick="switchAdhkar('soir')">🌙 Adhkar du soir</button>
+      </div>
+      <div id="adhkar-list"></div>
+    </div>
+
+    <!-- BIBLIOTHEQUE -->
+    <div class="screen" id="screen-library">
+      <div class="section-label">Oulémas de référence</div>
+      <div id="oulémas-list"></div>
+      <div class="section-label" style="margin-top:24px">Livres de référence</div>
+      <div id="livres-list"></div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('home')" id="nav-home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Accueil</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('quran')" id="nav-quran">
+      <span class="nav-icon">📖</span>
+      <span class="nav-label">Coran</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('hadith')" id="nav-hadith">
+      <span class="nav-icon">📜</span>
+      <span class="nav-label">Hadith</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('adhkar')" id="nav-adhkar">
+      <span class="nav-icon">🤲</span>
+      <span class="nav-label">Adhkar</span>
+    </button>
+    <button class="nav-btn" onclick="switchTab('library')" id="nav-library">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">Bibliothèque</span>
+    </button>
+  </nav>
+</div>
+
+<button id="install-banner" onclick="installApp()">📲 Installer l'app sur mon téléphone</button>
+
+<script>
+// ═══════════════════════════════════
+// DATA
+// ═══════════════════════════════════
+const DATA = {
+  sourates: [
+    { n:1, nom:"Al-Fatiha", ar:"الفاتحة", v:7, rev:"Mecquoise" },
+    { n:2, nom:"Al-Baqara", ar:"البقرة", v:286, rev:"Médinoise" },
+    { n:3, nom:"Al-Imran", ar:"آل عمران", v:200, rev:"Médinoise" },
+    { n:4, nom:"An-Nisa", ar:"النساء", v:176, rev:"Médinoise" },
+    { n:18, nom:"Al-Kahf", ar:"الكهف", v:110, rev:"Mecquoise" },
+    { n:36, nom:"Ya-Sin", ar:"يس", v:83, rev:"Mecquoise" },
+    { n:55, nom:"Ar-Rahman", ar:"الرحمن", v:78, rev:"Médinoise" },
+    { n:112, nom:"Al-Ikhlas", ar:"الإخلاص", v:4, rev:"Mecquoise" },
+    { n:113, nom:"Al-Falaq", ar:"الفلق", v:5, rev:"Mecquoise" },
+    { n:114, nom:"An-Nas", ar:"الناس", v:6, rev:"Mecquoise" },
+  ],
+  hadiths: [
+    { id:1, ar:"إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ", fr:"Les actes ne valent que par les intentions.", narrateur:"Umar Ibn Al-Khattab (رضي الله عنه)", source:"Sahih Al-Bukhari", num:1, auth:"Sahih", albani:"Sahih", ref:"Silsilah As-Sahihah n°1", theme:"Niyyah" },
+    { id:2, ar:"الدِّينُ النَّصِيحَةُ", fr:"La religion, c'est la sincérité.", narrateur:"Tamim Ad-Dari (رضي الله عنه)", source:"Sahih Muslim", num:55, auth:"Sahih", albani:"Sahih", ref:"Sahih Muslim n°55", theme:"Nasiha" },
+    { id:3, ar:"مَنْ أَحْدَثَ فِي أَمْرِنَا هَذَا مَا لَيْسَ مِنْهُ فَهُوَ رَدٌّ", fr:"Quiconque introduit dans notre religion quelque chose qui n'en fait pas partie, cela sera rejeté.", narrateur:"Aïcha (رضي الله عنها)", source:"Sahih Al-Bukhari", num:2697, auth:"Sahih", albani:"Sahih", ref:"Sahih Al-Bukhari n°2697", theme:"Bid'ah" },
+    { id:4, ar:"خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ", fr:"Le meilleur d'entre vous est celui qui apprend le Coran et l'enseigne.", narrateur:"Uthman Ibn Affan (رضي الله عنه)", source:"Sahih Al-Bukhari", num:5027, auth:"Sahih", albani:"Sahih", ref:"Sahih Al-Bukhari n°5027", theme:"Coran" },
+    { id:5, ar:"مَنْ صَامَ رَمَضَانَ إِيمَانًا وَاحْتِسَابًا غُفِرَ لَهُ مَا تَقَدَّمَ مِنْ ذَنْبِهِ", fr:"Quiconque jeûne le Ramadan avec foi et en espérant la récompense d'Allah, ses péchés passés lui seront pardonnés.", narrateur:"Abu Hurayra (رضي الله عنه)", source:"Sahih Al-Bukhari", num:38, auth:"Sahih", albani:"Sahih", ref:"Sahih Al-Bukhari n°38", theme:"Ramadan" },
+  ],
+  adhkar: {
+    matin: [
+      { id:"m1", titre:"Ayat Al-Kursi", ar:"اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ", fr:"Allah ! Point de divinité en dehors de Lui, le Vivant, Celui qui subsiste par lui-même. Ni somnolence ni sommeil ne Le saisissent.", ref:"Sourate Al-Baqara v.255 — 1× le matin", rep:1 },
+      { id:"m2", titre:"Dhikr du matin", ar:"أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَٰهَ إِلَّا اللهُ وَحْدَهُ لَا شَرِيكَ لَهُ", fr:"Nous sommes entrés dans le matin, et le royaume appartient à Allah. Toute louange revient à Allah. Point de divinité en dehors d'Allah, Seul, sans associé.", ref:"Hisnul Muslim n°68 — Sahih", rep:1 },
+      { id:"m3", titre:"Sayyid Al-Istighfar", ar:"اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ", fr:"Ô Allah, Tu es mon Seigneur, point de divinité en dehors de Toi. Tu m'as créé et je suis Ton serviteur.", ref:"Sahih Al-Bukhari n°6306 — 1× le matin", rep:1 },
+      { id:"m4", titre:"Tasbih du matin", ar:"سُبْحَانَ اللهِ وَبِحَمْدِهِ", fr:"Gloire à Allah et Sa louange.", ref:"Sahih Muslim n°2692 — 100× le matin", rep:100 },
+    ],
+    soir: [
+      { id:"s1", titre:"Dhikr du soir", ar:"أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ", fr:"Nous sommes entrés dans le soir et le royaume appartient à Allah. Toute louange revient à Allah.", ref:"Hisnul Muslim n°69 — Sahih", rep:1 },
+      { id:"s2", titre:"Tasbih du soir", ar:"سُبْحَانَ اللهِ وَبِحَمْدِهِ", fr:"Gloire à Allah et Sa louange.", ref:"Sahih Muslim n°2692 — 100× le soir", rep:100 },
+      { id:"s3", titre:"Protection du soir", ar:"بِسْمِ اللهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ", fr:"Au nom d'Allah avec Lequel rien ne peut nuire sur terre ni dans le ciel. Il est l'Audient, l'Omniscient.", ref:"Hisnul Muslim n°98 — 3× le soir", rep:3 },
+    ]
+  },
+  oulemas: [
+    { nom:"Abd Al-Aziz Ibn Baz", annees:"1909–1999", spe:"Aqidah, Fiqh, Hadith", pays:"Arabie Saoudite" },
+    { nom:"Muhammad Nasir Ad-Din Al-Albani", annees:"1914–1999", spe:"Sciences du Hadith", pays:"Albanie / Jordanie" },
+    { nom:"Muhammad Ibn Salih Al-Uthaymin", annees:"1925–2001", spe:"Aqidah, Fiqh, Tafsir", pays:"Arabie Saoudite" },
+    { nom:"Salih Al-Fawzan", annees:"1933–présent", spe:"Aqidah, Fiqh", pays:"Arabie Saoudite" },
+    { nom:"Muqbil Ibn Hadi Al-Wadi'i", annees:"1933–2001", spe:"Hadith, Aqidah", pays:"Yémen" },
+    { nom:"Rabi Ibn Hadi Al-Madkhali", annees:"1931–présent", spe:"Hadith, Jarh wa Ta'dil", pays:"Arabie Saoudite" },
+  ],
+  livres: [
+    { titre:"Kitab At-Tawhid", auteur:"Muhammad Ibn Abd Al-Wahhab", type:"Aqidah" },
+    { titre:"Al-Aqida Al-Wasitiyya", auteur:"Ibn Taymiyya", type:"Aqidah" },
+    { titre:"Al-Aqida At-Tahawiyya", auteur:"At-Tahawi", type:"Aqidah" },
+    { titre:"Riyad As-Salihin", auteur:"An-Nawawi", type:"Hadith" },
+    { titre:"Hisnul Muslim", auteur:"Said Al-Qahtani", type:"Adhkar" },
+    { titre:"Silsilah As-Sahihah", auteur:"Al-Albani", type:"Hadith" },
+    { titre:"Zaad Al-Ma'ad", auteur:"Ibn Al-Qayyim", type:"Sira / Fiqh" },
+  ]
+};
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let currentTab = 'home';
+let currentAdhkar = 'matin';
+let hadithFilter = 'Tous';
+let counts = {};
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+function switchTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + tab).classList.add('active');
+  document.getElementById('nav-' + tab).classList.add('active');
+  currentTab = tab;
+}
+
+// ═══════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('live-clock').textContent = h + ':' + m;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ═══════════════════════════════════
+// BADGE HELPER
+// ═══════════════════════════════════
+function badge(auth) {
+  const map = { Sahih:'sahih', Hasan:'hasan', "Da'if":'daif', Mawdou:'mawdou' };
+  const labels = { Sahih:'✓ Sahih', Hasan:'~ Hasan', "Da'if":'⚠ Da\'if', Mawdou:'✗ Mawdou\'' };
+  return `<span class="badge badge-${map[auth]||'sahih'}">${labels[auth]||auth}</span>`;
+}
+
+// ═══════════════════════════════════
+// RENDER SOURATES
+// ═══════════════════════════════════
+function renderSourates() {
+  const el = document.getElementById('sourates-list');
+  el.innerHTML = DATA.sourates.map(s => `
+    <div class="sourate-item" onclick="openSourate(${s.n})">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="sourate-num">${s.n}</div>
+        <div>
+          <div style="font-weight:600;font-size:14px;color:var(--text)">${s.nom}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:2px">${s.v} versets · ${s.rev}</div>
+        </div>
+      </div>
+      <div class="arabic" style="font-size:20px;color:var(--gold)">${s.ar}</div>
+    </div>
+  `).join('');
+}
+
+function openSourate(n) {
+  alert(`Sourate n°${n}\n\nPour lire le texte complet, intégrez l'API Quran.com dans la version développée :\nhttps://api.quran.com/api/v4/verses/by_chapter/${n}`);
+}
+
+// ═══════════════════════════════════
+// RENDER HADITHS
+// ═══════════════════════════════════
+function renderHadiths() {
+  const filtered = hadithFilter === 'Tous' ? DATA.hadiths : DATA.hadiths.filter(h => h.auth === hadithFilter);
+  const el = document.getElementById('hadiths-list');
+  el.innerHTML = filtered.map(h => `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="color:var(--gold);font-size:12px;font-weight:700">${h.theme}</div>
+        ${badge(h.auth)}
+      </div>
+      <div class="arabic arabic-lg" style="margin-bottom:12px">${h.ar}</div>
+      <div style="color:var(--text-muted);font-size:14px;line-height:1.7;font-style:italic;margin-bottom:14px">« ${h.fr} »</div>
+      <hr class="divider" />
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px">
+        <div>
+          <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px">Narrateur</div>
+          <div style="color:var(--green-soft)">${h.narrateur}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="color:var(--text-dim);font-size:10px;margin-bottom:2px">Source</div>
+          <div style="color:var(--text-muted)">${h.source} n°${h.num}</div>
+        </div>
+      </div>
+      ${h.albani ? `<div class="albani-check">✓ Vérifié par Al-Albani : ${h.albani} — ${h.ref}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+document.getElementById('hadith-filters').addEventListener('click', e => {
+  const btn = e.target.closest('.filter-btn');
+  if (!btn) return;
+  hadithFilter = btn.dataset.filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHadiths();
+});
+
+// ═══════════════════════════════════
+// RENDER ADHKAR
+// ═══════════════════════════════════
+function switchAdhkar(moment) {
+  currentAdhkar = moment;
+  document.getElementById('btn-matin').classList.toggle('active', moment === 'matin');
+  document.getElementById('btn-soir').classList.toggle('active', moment === 'soir');
+  renderAdhkar();
+}
+
+function renderAdhkar() {
+  const list = DATA.adhkar[currentAdhkar];
+  const el = document.getElementById('adhkar-list');
+  el.innerHTML = list.map(d => {
+    const count = counts[d.id] || 0;
+    const done = count >= d.rep;
+    return `
+      <div class="card" id="card-${d.id}" style="${done ? 'background:#052e16;border-color:#22c55e30' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-weight:600;font-size:14px;color:${done ? '#22c55e' : 'var(--gold)'}">
+            ${done ? '✓ Complété' : d.titre}
+          </div>
+          <div style="color:var(--text-dim);font-size:11px">${d.rep}×</div>
+        </div>
+        <div class="arabic arabic-lg" style="margin-bottom:12px">${d.ar}</div>
+        <div style="color:var(--text-muted);font-size:13px;line-height:1.6;margin-bottom:10px">${d.fr}</div>
+        <div style="color:var(--text-dim);font-size:11px;margin-bottom:${d.rep > 1 ? '14px' : '0'}">${d.ref}</div>
+        ${d.rep > 1 ? `
+          <div style="display:flex;align-items:center;gap:14px">
+            <button class="counter-btn ${done ? 'done' : ''}" onclick="increment('${d.id}', ${d.rep})" ${done ? 'disabled' : ''}>
+              ${done ? '✓' : '+1'}
+            </button>
+            <div style="font-size:22px;font-weight:700;color:var(--text)">${count} <span style="color:var(--text-dim);font-size:14px">/ ${d.rep}</span></div>
+            <button class="reset-btn" onclick="resetCount('${d.id}')">↺ Reset</button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function increment(id, max) {
+  counts[id] = Math.min((counts[id] || 0) + 1, max);
+  renderAdhkar();
+}
+function resetCount(id) {
+  counts[id] = 0;
+  renderAdhkar();
+}
+
+// ═══════════════════════════════════
+// RENDER LIBRARY
+// ═══════════════════════════════════
+function renderLibrary() {
+  document.getElementById('oulémas-list').innerHTML = DATA.oulemas.map(o => `
+    <div class="oulema-item">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:600;font-size:15px;margin-bottom:4px;color:var(--text)">${o.nom}</div>
+          <div style="color:var(--gold);font-size:12px;margin-bottom:6px">${o.annees}</div>
+          <div style="color:var(--text-dim);font-size:12px">${o.spe}</div>
+        </div>
+        <div class="chip">${o.pays}</div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('livres-list').innerHTML = DATA.livres.map(l => `
+    <div class="livre-item">
+      <div>
+        <div style="font-weight:600;font-size:14px;color:var(--text);margin-bottom:4px">${l.titre}</div>
+        <div style="font-size:12px;color:var(--text-dim)">${l.auteur}</div>
+      </div>
+      <div class="chip-green">${l.type}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════
+// PWA INSTALL
+// ═══════════════════════════════════
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'block';
+});
+function installApp() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => {
+      document.getElementById('install-banner').style.display = 'none';
+      deferredPrompt = null;
+    });
+  }
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+renderSourates();
+renderHadiths();
+renderAdhkar();
+renderLibrary();
+</script>
+</body>
+</html>
